@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:newsapi/models/article_model.dart';
 import 'package:newsapi/models/category_model.dart';
+import 'package:newsapi/pages/all_trending_news_page.dart';
 import 'package:newsapi/services/category_data.dart';
 import 'package:newsapi/services/news_API_service.dart';
 import 'package:newsapi/widgets/cardbuilderwidget.dart';
@@ -10,6 +11,7 @@ import '../services/slider_data.dart';
 import '../widgets/customIndicator.dart';
 import '../widgets/buildimage.dart';
 import '../widgets/categoryTile.dart';
+import 'all_breaking_news_page.dart';
 import 'article_view_page.dart';
 
 class Home extends StatefulWidget {
@@ -63,157 +65,182 @@ class _HomeState extends State<Home> {
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              height: 70,
-              margin: const EdgeInsets.only(left: 16),
-              child: ListView.builder(
-                itemCount: categories.length,
-                shrinkWrap: true,
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (context, index) {
-                  return CategoryTile(
-                    image: categories[index].image,
-                    categoryName: categories[index].categoryName,
-                  );
-                },
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Categories horizontal list
+              Container(
+                height: 70,
+                margin: const EdgeInsets.only(left: 16),
+                child: ListView.builder(
+                  itemCount: categories.length,
+                  shrinkWrap: true,
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (context, index) {
+                    return CategoryTile(
+                      image: categories[index].image,
+                      categoryName: categories[index].categoryName,
+                    );
+                  },
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Breaking News!",
-                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.w500),
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      "View All",
-                      style: TextStyle(color: Colors.green),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 10),
-            FutureBuilder<List<SliderModel>>(
-              future: widget.sliderNews,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text("Error: ${snapshot.error}"));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text("No slider news found"));
-                } else {
-                  List<SliderModel> sliders = snapshot.data!;
 
-                  return Column(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ArticleViewPage(
-                                articleUrl: sliders[activeIndex].url ?? "",
+              FutureBuilder<List<SliderModel>>(
+                future: widget.sliderNews,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text("Error: ${snapshot.error}"));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text("No breaking news found"));
+                  } else {
+                    List<SliderModel> sliders = snapshot.data!;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // This is the ONLY "Breaking News!" header + View All button
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16, right: 16, top: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Breaking News!",
+                                style: TextStyle(fontSize: 25, fontWeight: FontWeight.w500),
                               ),
-                            ),
-                          );
-                        },
-                        child: CarouselSlider.builder(
-                          itemCount: sliders.length,
-                          options: CarouselOptions(
-                            height: 200,
-                            autoPlay: true,
-                            enlargeCenterPage: true,
-                            onPageChanged: (index, reason) {
-                              setState(() => activeIndex = index);
-                            },
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AllBreakingNewsPage(
+                                        breakingNews: sliders, // Works here!
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  "View All",
+                                  style: TextStyle(color: Colors.green),
+                                ),
+                              ),
+                            ],
                           ),
-                          itemBuilder: (BuildContext context, int index, int realIndex) {
-                            final item = sliders[index];
-                            return buildImage(context, item.urlToImage, item.title);
-                          },
                         ),
-                      ),
-                      SizedBox(height: 10),
-                      CustomIndicator(activeIndex: activeIndex, count: sliders.length),
-                    ],
-                  );
+                        const SizedBox(height: 10),
 
-                }
-              },
-            ),
-            SizedBox(height: 16),
-            CustomIndicator(activeIndex: activeIndex, count: slider.length),
-            SizedBox(height: 5),
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Trending News!",
-                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.w500),
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      "View All",
-                      style: TextStyle(color: Colors.green),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            FutureBuilder<List<ArticleModel>>(
-              future: widget.trendingNews,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text("Error: ${snapshot.error}"));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text("No news found"));
-                } else {
-                  List<ArticleModel> articles = snapshot.data!;
-                  return ListView.builder(
-                    physics:  NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: articles.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: CardBuilderWidget.cardBuilderWidget(
-                          article: articles[index],
-                          onTap: (){
+                        // Carousel
+                        GestureDetector(
+                          onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ArticleViewPage(
-                                  articleUrl: articles[index].url ?? "",
+                                  articleUrl: sliders[activeIndex].url ?? "",
                                 ),
                               ),
                             );
                           },
+                          child: CarouselSlider.builder(
+                            itemCount: sliders.length,
+                            options: CarouselOptions(
+                              height: 200,
+                              autoPlay: true,
+                              enlargeCenterPage: true,
+                              onPageChanged: (index, reason) {
+                                setState(() => activeIndex = index);
+                              },
+                            ),
+                            itemBuilder: (context, index, realIndex) {
+                              final item = sliders[index];
+                              return buildImage(context, item.urlToImage, item.title);
+                            },
+                          ),
                         ),
-                      );
-                    },
-                  );
-                }
-              },
-            ),
+                        const SizedBox(height: 10),
+                        Center(child: CustomIndicator(activeIndex: activeIndex, count: sliders.length)),
+                      ],
+                    );
+                  }
+                },
+              ),
 
 
-          ],
+              FutureBuilder<List<ArticleModel>>(
+                future: widget.trendingNews,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text("Error: ${snapshot.error}"));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text("No news found"));
+                  } else {
+                    List<ArticleModel> articles = snapshot.data!;
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16, right: 16, top: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Trending News!",
+                                style: TextStyle(fontSize: 25, fontWeight: FontWeight.w500),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AllTrendingNewsPage(
+                                        trendingNews: articles, // Works here!
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  "View All",
+                                  style: TextStyle(color: Colors.green),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        ListView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: articles.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: CardBuilderWidget.cardBuilderWidget(
+                                article: articles[index],
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ArticleViewPage(
+                                        articleUrl: articles[index].url ?? "",
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
         ),
-      ),
     );
   }
 }

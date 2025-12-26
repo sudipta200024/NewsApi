@@ -7,7 +7,8 @@ class NewsApiService {
   static const String apiKey = "5e378a98386d4555becabaa246fec501";
 
   Future<List<ArticleModel>> getNews() async {
-    String url ="$baseUrl/everything?q=apple&from=2025-09-08&to=2025-09-08&sortBy=popularity&apiKey=$apiKey";
+    String url = "$baseUrl/top-headlines?country=us&apiKey=$apiKey";
+    // String url ="$baseUrl/everything?q=apple&from=2025-09-08&to=2025-09-08&sortBy=popularity&apiKey=$apiKey";
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonData = jsonDecode(response.body);
